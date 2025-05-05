@@ -1,0 +1,5 @@
+- các node phải có khoảng cách với nhau và với địa hình (0.25m) 20*20*20
+- đk về khoảng cách giao tiếp
+- cost = quãng đường
+
+AUV 1m/s
