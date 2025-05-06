@@ -8,14 +8,14 @@ close all;
 %% Network parameter
 
 % Monitor area
-Obstacle_Area = genarea();
-%load("Obstacle_Area.mat");
+%Obstacle_Area = genarea();
+load("Obstacle_Area.mat");
 %%
 Covered_Area = zeros(size(Obstacle_Area,1),size(Obstacle_Area,2),size(Obstacle_Area,3));
 [obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
 
 % nodes info
-MaxIt = 200;              % Maximum Number of Iterations
+MaxIt = 1000;              % Maximum Number of Iterations
 a = 1;                    % Acceleration Coefficient Upper Bound
 N = 30;
 rc = 20;
@@ -34,29 +34,42 @@ pop=initpop;
 % Array to Hold Best Cost Values
 BestCostIt = zeros(MaxIt, 1);
 popIt=zeros(MaxIt,3*N);
+popIt(1,:)=reshape(pop,[1 N*3]);
 C=zeros(N,1);
 
 %%     ABC Main Loop
-for it = 1:MaxIt
+for it = 2:MaxIt
     for i=1:N
         % node i makes move decision this turn          
         al_pop=pop;             % alternative array of pop to load new positions
         while(1)
-            K = [1:i-1 i+1:N];
-            k = K(randi([1 numel(K)]));
-            phi = a*unifrnd(-1, +1, 3)*(1-C(i)/(MaxIt))^5;
-            vt=min(max(phi .* (pop(i,:)-pop(k,:))-v),v);
-            %% New Positions are created
             
+            while(1)
+                K = [1:i-1 i+1:N];
+                k = K(randi([1 numel(K)]));
+                phi = a*unifrnd(-1, +1, [1 3])*(1-C(i)/(MaxIt))^5;
+                vt = phi .* (pop(i,:)-pop(k,:));
+                if sqrt(sum(vt.^2)) <= v
+                    break;
+                end
+            end
+            %vt=min(max(phi .* (pop(i,:)-pop(k,:)),-v),v);
+            %% New Positions are created
             al_pop(i,:) = pop(i,:) + vt;
                 
             %% boundary check
             al_pop(i,1) = min(max(al_pop(i,1), min(obs_x)+1),size(Obstacle_Area,1));
             al_pop(i,2) = min(max(al_pop(i,2), min(obs_y)+1),size(Obstacle_Area,2));
             al_pop(i,3) = min(max(al_pop(i,3), min(obs_z)+1),size(Obstacle_Area,3));
-            obs_check1=[obs_x obs_y obs_z]-round(al_pop(i,:));
-            obs_check2=abs(obs_check1(:,1))+abs(obs_check1(:,2))+abs(obs_check1(:,3));
-            if ~any(obs_check2==0)
+            % obs_check1=[obs_x obs_y obs_z]-round(al_pop(i,:));
+            % obs_check2=abs(obs_check1(:,1))+abs(obs_check1(:,2))+abs(obs_check1(:,3));
+            % if ~any(obs_check2==0)
+            %     break;
+            % end
+            [obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
+            obs = [obs_y, obs_x, obs_z ; pop(1:i-1,:) ; pop(i+1:N,:)];
+            obs_check1=sqrt((obs(:,1)-al_pop(i,1)).^2+(obs(:,2)-al_pop(i,2)).^2+(obs(:,3)-al_pop(i,3)).^2);
+            if ~any(obs_check1<0.25)
                 break;
             end
         
@@ -87,14 +100,14 @@ for it = 1:MaxIt
     %% plot
     clf();
     hold on;
-    plot3(pop(:,2),pop(:,1),pop(:,3),'ro','MarkerSize', 3,'Color','red')
+    plot3(pop(:,1),pop(:,2),pop(:,3),'ro','MarkerSize', 3,'Color','red')
     
     [x1,y1,z1] = sphere;
     for i=1:size(pop,1)
         x=x1*rs(i);
         y=y1*rs(i);
         z=z1*rs(i);
-        surf(y+pop(i,2),x+pop(i,1),z+pop(i,3),'LineStyle',':','EdgeColor','cyan','EdgeAlpha',0.6,'FaceColor','none');
+        surf(x+pop(i,1),y+pop(i,2),z+pop(i,3),'LineStyle',':','EdgeColor','cyan','EdgeAlpha',0.6,'FaceColor','none');
     end
     
     axis([0 size(Obstacle_Area,1)-1 0 size(Obstacle_Area,2)-1 0 size(Obstacle_Area,3)-1]); % Set the limits for X, Y, and Z axes
@@ -115,7 +128,7 @@ for it = 1:MaxIt
     drawnow;
     clear x y z x1 y1 z1 i ;
 end
-clear obs_x obs_y obs_z;
+clear obs_x obs_y obs_z vt sink al_pop C;
 %%
 %save(name)
 %end

@@ -51,18 +51,18 @@ for j=1:(size(pop,1))
     
 end       
 %%
-Covered_Area = inside_sector.* (1-Obstacle_Area);
+Covered_Area = inside_sector.* (1-Obstacle_Area) - 2 * inside_sector.* (Obstacle_Area);
 %clear D Theta in_circle in_angle inside_sector;
 
 
 %% add obstacle to covered area
 %% check obstacle in all covered area
-[obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
-for i = 1:numel(obs_x)
-    if Covered_Area (obs_x(i), obs_y(i), obs_z(i)) == 1   
-        Covered_Area(obs_x(i), obs_y(i), obs_z(i)) = -2;
-    end
-end
+% [obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
+% for i = 1:numel(obs_x)
+%     if Covered_Area (obs_x(i), obs_y(i), obs_z(i)) == 1   
+%         Covered_Area(obs_x(i), obs_y(i), obs_z(i)) = -2;
+%     end
+% end
 
 count1=numel(ind2sub(size(Covered_Area),find(Covered_Area==1)));		                          % count covered points on wanted location  (wanted)
 %count2=numel(ind2sub(size(Covered_Area),find(Covered_Area==-2)));		                          % count covered points on unwanted location (obstacles)
