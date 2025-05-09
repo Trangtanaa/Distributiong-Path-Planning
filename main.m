@@ -113,13 +113,13 @@ for it = 2:MaxIt
     axis([0 size(Obstacle_Area,1)-1 0 size(Obstacle_Area,2)-1 0 size(Obstacle_Area,3)-1]); % Set the limits for X, Y, and Z axes
     
     [obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
-    plot3(obs_y, obs_x, obs_z,'.', 'MarkerSize', 2, 'Color', 'blue');
+    plot3(obs_y-1, obs_x-1, obs_z-1,'.', 'MarkerSize', 2, 'Color', 'blue');
     isosurface(0:size(Obstacle_Area,1)-1, 0:size(Obstacle_Area,2)-1, 0:size(Obstacle_Area,3)-1, Obstacle_Area, 0.5); % Correct dimension matching
     axis equal;
     xlabel('X-axis');
     ylabel('Y-axis');
     zlabel('Z-axis');
-    title(['3D Terrain Iteration: ' num2str(it) ', Coverage: ' num2str(BestCostIt(it))]);
+    %title(['3D Terrain Iteration: ' num2str(it) ', Coverage: ' num2str(BestCostIt(it))]);
     view(3);
     grid on;
     % Add lighting for better visualization
