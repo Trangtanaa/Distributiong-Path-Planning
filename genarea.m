@@ -1,37 +1,41 @@
 function Obstacle_Area = genarea()
 % Interest area value =0
 % Obstacle area value =1
-bound=50;
+bound=[50 50 15];
 % Define grid size (X and Y coordinates)
-x = 0:bound; % X-axis range
-y = 0:bound; % Y-axis range
-z = 0:bound; % Z-axis range (depth levels)
+x = 0:bound(1); % X-axis range
+y = 0:bound(2); % Y-axis range
+z = 0:bound(3); % Z-axis range (depth levels)
 %[X, Y, Z] = meshgrid(x, y, z); % 3D grid for the entire volume
 
 %% Generate random terrain (Z values) using Perlin-like noise
 rng(1); % Seed for reproducibility
 [X2D, ~] = meshgrid(x, y); % 2D grid for terrain
-terrain = zeros(size(X2D)); % Initialize terrain
+terrain = zeros(size(X2D))'; % Initialize terrain
 
 %% Create fractal noise for terrain
-scales = [10, 20, 40]; % Noise scales for detail levels
-amplitudes = [10, 5, 2]; % Heights for each noise layer
+scales = [40, 20]; % Noise scales for detail levels
+amplitudes = [5, 2]; % Heights for each noise layer
 for i = 1:length(scales)
     % Generate random noise in the range [0, 1]
-    noise = rand(ceil(size(X2D, 1)/scales(i)), ceil(size(X2D, 2)/scales(i)));
+    noise1 = rand(ceil(size(X2D, 1)/scales(i)), ceil(size(X2D, 2)/scales(i)));
     
     % Interpolate this noise to fit the grid size of X2D
-    noise = interp2(noise, linspace(1, size(noise, 1), size(X2D, 1)), ...
-                    linspace(1, size(noise, 2), size(X2D, 2))');
-    terrain = terrain + amplitudes(i) * noise; % Accumulate layers
+    %noise2 = interp2(noise1, linspace(1, size(noise1, 1), size(X2D, 1)), linspace(1, size(noise1, 2), size(X2D, 2))');
+    [x1, y1] = meshgrid(1:size(noise1, 2), 1:size(noise1, 1));
+    [xq, yq] = meshgrid(linspace(1, size(noise1, 2), size(X2D, 2)), linspace(1, size(noise1, 1), size(X2D, 1)));
+    noise2 = interp2(x1, y1, noise1, xq, yq, 'linear');
+    terrain = terrain + amplitudes(i) * noise2'; % Accumulate layers
+
 end
+
 
 %% Normalize terrain height to fit the range [0,50]
 terrain = terrain - min(terrain(:)); % Set minimum height to 0
-terrain = terrain / max(terrain(:)) * (bound/2); % Scale terrain height to [0.50]
+terrain = terrain / max(terrain(:)) * (bound(3)/4); % Scale terrain height to [0.50]
 
 %% Generate 3D bitmap
-Obstacle_Area = zeros(length(y), length(x), length(z)); % Initialize 3D binary matrix
+Obstacle_Area = zeros(length(x), length(y), length(z)); % Initialize 3D binary matrix
 for k = 1:length(z)
     Obstacle_Area(:, :, k) = terrain >= z(k); % Fill voxels below the terrain
 end

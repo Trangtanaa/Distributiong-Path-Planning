@@ -8,27 +8,30 @@ close all;
 %% Network parameter
 
 % Monitor area
-%Obstacle_Area = genarea();
-load("Obstacle_Area.mat");
+Obstacle_Area = gentunnel();
+%load("Obstacle_Area.mat");
 %%
 Covered_Area = zeros(size(Obstacle_Area,1),size(Obstacle_Area,2),size(Obstacle_Area,3));
-[obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
+%[obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
 
 % nodes info
-MaxIt = 1000;              % Maximum Number of Iterations
+MaxIt = 2000;              % Maximum Number of Iterations
 a = 1;                    % Acceleration Coefficient Upper Bound
-N = 30;
+N = 40;
 rc = 20;
 rs = 10*ones(1,N);
-sink=[40 40 40];
+%sink=[40 40 40];
 
 %moving parameter
 v=0.25;                      % max velocity of node
 
 %% Init first pop
 figure;
-initpop=unifrnd(30,50,[N 3]);
-initpop(1,:)=sink;
+initpop=zeros(N,3);
+initpop(:,1)=unifrnd(size(Obstacle_Area,1)/2-5,size(Obstacle_Area,1)/2+5,[N 1]);
+initpop(:,2)=unifrnd(size(Obstacle_Area,2)/2-5,size(Obstacle_Area,2)/2+5,[N 1]);
+initpop(:,3)=unifrnd(size(Obstacle_Area,3)-20,size(Obstacle_Area,3),[N 1]);
+%initpop(1,:)=sink;
 pop=initpop;
 
 % Array to Hold Best Cost Values
@@ -58,18 +61,14 @@ for it = 2:MaxIt
             al_pop(i,:) = pop(i,:) + vt;
                 
             %% boundary check
+            [obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
             al_pop(i,1) = min(max(al_pop(i,1), min(obs_x)+1),size(Obstacle_Area,1));
             al_pop(i,2) = min(max(al_pop(i,2), min(obs_y)+1),size(Obstacle_Area,2));
             al_pop(i,3) = min(max(al_pop(i,3), min(obs_z)+1),size(Obstacle_Area,3));
-            % obs_check1=[obs_x obs_y obs_z]-round(al_pop(i,:));
-            % obs_check2=abs(obs_check1(:,1))+abs(obs_check1(:,2))+abs(obs_check1(:,3));
-            % if ~any(obs_check2==0)
-            %     break;
-            % end
-            [obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
+            
             obs = [obs_y, obs_x, obs_z ; pop(1:i-1,:) ; pop(i+1:N,:)];
             obs_check1=sqrt((obs(:,1)-al_pop(i,1)).^2+(obs(:,2)-al_pop(i,2)).^2+(obs(:,3)-al_pop(i,3)).^2);
-            if ~any(obs_check1<0.25)
+            if ~any(obs_check1<0.5)
                 break;
             end
         
@@ -107,19 +106,23 @@ for it = 2:MaxIt
         x=x1*rs(i);
         y=y1*rs(i);
         z=z1*rs(i);
-        surf(x+pop(i,1),y+pop(i,2),z+pop(i,3),'LineStyle',':','EdgeColor','cyan','EdgeAlpha',0.6,'FaceColor','none');
+        surf(x+pop(i,1),y+pop(i,2),z+pop(i,3),'LineStyle',':','EdgeColor','cyan','EdgeAlpha',0.8,'FaceColor','none');
     end
     
-    axis([0 size(Obstacle_Area,1)-1 0 size(Obstacle_Area,2)-1 0 size(Obstacle_Area,3)-1]); % Set the limits for X, Y, and Z axes
+    
     
     [obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Obstacle_Area==1));
     plot3(obs_y-1, obs_x-1, obs_z-1,'.', 'MarkerSize', 2, 'Color', 'blue');
-    isosurface(0:size(Obstacle_Area,1)-1, 0:size(Obstacle_Area,2)-1, 0:size(Obstacle_Area,3)-1, Obstacle_Area, 0.5); % Correct dimension matching
+    %[obs_x, obs_y, obs_z] = ind2sub(size(Obstacle_Area),find(Covered_Area==1));
+    %plot3(obs_y-1, obs_x-1, obs_z-1,'.', 'MarkerSize', 2, 'Color', 'red');
+    
+    isosurface(0:size(Obstacle_Area,2)-1, 0:size(Obstacle_Area,1)-1, 0:size(Obstacle_Area,3)-1, Obstacle_Area, 0.5); % Correct dimension matching
     axis equal;
     xlabel('X-axis');
     ylabel('Y-axis');
     zlabel('Z-axis');
-    %title(['3D Terrain Iteration: ' num2str(it) ', Coverage: ' num2str(BestCostIt(it))]);
+    axis([0 size(Obstacle_Area,2)-1 0 size(Obstacle_Area,1)-1 0 size(Obstacle_Area,3)-1]); % Set the limits for X, Y, and Z axes
+    disp(['3D Terrain Iteration: ' num2str(it) ', Coverage: ' num2str(BestCostIt(it))]);
     view(3);
     grid on;
     % Add lighting for better visualization

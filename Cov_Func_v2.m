@@ -15,7 +15,7 @@ function [coverage, Covered_Area] = Cov_Func_v2(pop,rs,Obstacle_Area,Covered_Are
 %find all covered point and recover them to uncover status
 [obs_x, obs_y, obs_z] = ind2sub(size(Covered_Area),find(Covered_Area==1));
 for i = 1:numel(obs_x)
-    Covered_Area(obs_x(i), obs_y(i), obs_z(i)) = 0;
+    Covered_Area(obs_y(i), obs_x(i), obs_z(i)) = 0;
 end
 
 %% check sensor covered area
